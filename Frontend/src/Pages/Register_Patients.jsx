@@ -1,175 +1,209 @@
 import React, { useState } from "react";
+
 import { useNavigate } from "react-router-dom";
-
-const Patients = () => {
+const PatientRegistration = () => {
+  
   const navigate = useNavigate();
+  const countries = ["India", "Iran", "Indonesia", "Iraq", "Ireland", "Italy"];
+  const states = {
+    India: ["Tamil Nadu", "Telangana", "Tripura"],
+    Iran: ["Tehran", "Tabriz"],
+    Indonesia: ["Jakarta", "Bali"],
+    Iraq: ["Baghdad", "Basra"],
+    Ireland: ["Dublin", "Cork"],
+    Italy: ["Rome", "Milan"],
+  };
 
+  const bloodGroups = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
   const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    dob: { day: "", month: "", year: "" },
     email: "",
-    password: "",
-    confirmPassword: "",
-    fullName: "",
     phone: "",
-    age: "",
+    countryCode: "+91",
     gender: "",
+    bloodGroup: "",
+    height: "",
+    weight: "",
+    heightUnit: "cm",
+    weightUnit: "kg",
+    address: "",
+    country: "",
+    state: "",
+    password: "",
     captchaInput: "",
   });
 
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [captcha, setCaptcha] = useState(generateCaptcha());
-  const [error, setError] = useState("");
-
-  function generateCaptcha() {
-    const num1 = Math.floor(Math.random() * 10) + 1;
-    const num2 = Math.floor(Math.random() * 10) + 1;
-    return { num1, num2, sum: num1 + num2 };
-  }
+  const [suggestedCountries, setSuggestedCountries] = useState([]);
+  const [suggestedStates, setSuggestedStates] = useState([]);
+  const [savedUsers, setSavedUsers] = useState([]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-    if (e.target.name === "password") {
-      setShowConfirmPassword(e.target.value.length > 0);
+  const handleCountryChange = (e) => {
+    const input = e.target.value;
+    setFormData({ ...formData, country: input, state: "" });
+
+    if (input.length > 0) {
+      setSuggestedCountries(
+        countries.filter((c) => c.toLowerCase().startsWith(input.toLowerCase()))
+      );
+    } else {
+      setSuggestedCountries([]);
     }
   };
 
-  const validateForm = () => {
-    if (!formData.email.includes("@") || !formData.email.includes(".")) {
-      setError("Enter a valid email address.");
-      return false;
+  const handleStateChange = (e) => {
+    const input = e.target.value;
+    setFormData({ ...formData, state: input });
+
+    if (formData.country && states[formData.country]) {
+      setSuggestedStates(
+        states[formData.country].filter((s) =>
+          s.toLowerCase().startsWith(input.toLowerCase())
+        )
+      );
+    } else {
+      setSuggestedStates([]);
     }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long.");
-      return false;
-    }
-    if (showConfirmPassword && formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
-      return false;
-    }
-    if (parseInt(formData.captchaInput) !== captcha.sum) {
-      setError("Captcha does not match.");
-      return false;
-    }
-    return true;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError("");
-
-    if (validateForm()) {
+    setSavedUsers([...savedUsers, { email: formData.email, password: formData.password }]);
+    console.log("Stored Users:", savedUsers);
+    alert("Form submitted successfully!");
+    setTimeout(() => {
       navigate("/loginP");
-    }
+  }, 500);
+
   };
 
   return (
     <div style={styles.container}>
+      <h2 style={styles.title}>Patient Registration</h2>
       <form onSubmit={handleSubmit} style={styles.form}>
-        <h2 style={styles.heading}>Patient Registration</h2>
+        <label>First Name:</label>
+        <input type="text" name="firstName" required onChange={handleInputChange} />
 
-        {error && <p style={styles.error}>{error}</p>}
+        <label>Last Name:</label>
+        <input type="text" name="lastName" required onChange={handleInputChange} />
 
-        <label style={styles.label}>Email Address:</label>
-        <input type="email" name="email" value={formData.email} onChange={handleInputChange} required style={styles.input} />
+        <label>Date of Birth:</label>
+        <div style={styles.row}>
+          <select name="dobDay" onChange={handleInputChange}>
+            <option value="">Day</option>
+            {[...Array(31)].map((_, i) => (
+              <option key={i + 1}>{i + 1}</option>
+            ))}
+          </select>
+          <select name="dobMonth" onChange={handleInputChange}>
+            <option value="">Month</option>
+            {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map(
+              (m) => (
+                <option key={m}>{m}</option>
+              )
+            )}
+          </select>
+          <select name="dobYear" onChange={handleInputChange}>
+            <option value="">Year</option>
+            {[...Array(100)].map((_, i) => (
+              <option key={2024 - i}>{2024 - i}</option>
+            ))}
+          </select>
+        </div>
 
-        <label style={styles.label}>Password:</label>
-        <input type="password" name="password" value={formData.password} onChange={handleInputChange} required style={styles.input} />
+        <label>Email Address:</label>
+        <input type="email" name="email" required onChange={handleInputChange} />
 
-        {showConfirmPassword && (
-          <>
-            <label style={styles.label}>Confirm Password:</label>
-            <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} required style={styles.input} />
-          </>
-        )}
+        <label>Phone Number:</label>
+        <div style={styles.row}>
+          <select name="countryCode" onChange={handleInputChange}>
+            <option>+91</option>
+            <option>+1</option>
+            <option>+44</option>
+            <option>+86</option>
+          </select>
+          <input type="text" name="phone" required onChange={handleInputChange} />
+        </div>
 
-        <label style={styles.label}>Full Name:</label>
-        <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} required style={styles.input} />
+        <label>Gender:</label>
+        <div>
+          <input type="radio" name="gender" value="Male" onChange={handleInputChange} /> Male
+          <input type="radio" name="gender" value="Female" onChange={handleInputChange} /> Female
+        </div>
 
-        <label style={styles.label}>Phone Number:</label>
-        <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required style={styles.input} />
-
-        <label style={styles.label}>Age:</label>
-        <input type="number" name="age" value={formData.age} onChange={handleInputChange} required style={styles.input} />
-
-        <label style={styles.label}>Gender:</label>
-        <select name="gender" value={formData.gender} onChange={handleInputChange} required style={styles.input}>
+        <label>Blood Group:</label>
+        <select name="bloodGroup" onChange={handleInputChange}>
           <option value="">Select</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
+          {bloodGroups.map((bg) => (
+            <option key={bg}>{bg}</option>
+          ))}
         </select>
 
-        <label style={styles.label}>Captcha: {captcha.num1} + {captcha.num2} = ?</label>
-        <input type="number" name="captchaInput" value={formData.captchaInput} onChange={handleInputChange} required style={styles.input} />
+        <label>Height & Weight:</label>
+        <div style={styles.row}>
+          <input type="number" name="height" placeholder="Height" onChange={handleInputChange} />
+          <select name="heightUnit" onChange={handleInputChange}>
+            <option>cm</option>
+            <option>inches</option>
+          </select>
+          <input type="number" name="weight" placeholder="Weight" onChange={handleInputChange} />
+          <select name="weightUnit" onChange={handleInputChange}>
+            <option>kg</option>
+            <option>pounds</option>
+          </select>
+        </div>
 
-        <button type="button" onClick={() => setCaptcha(generateCaptcha())} style={styles.buttonSecondary}>Regenerate Captcha</button>
+        <label>Address:</label>
+        <textarea name="address" onChange={handleInputChange}></textarea>
 
-        <button type="submit" style={styles.buttonPrimary}>Submit</button>
+        <label>Country:</label>
+        <input type="text" name="country" value={formData.country} onChange={handleCountryChange} />
+        {suggestedCountries.length > 0 && (
+          <ul style={styles.suggestions}>
+            {suggestedCountries.map((c) => (
+              <li key={c} onClick={() => setFormData({ ...formData, country: c })}>
+                {c}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <label>State:</label>
+        <input type="text" name="state" value={formData.state} onChange={handleStateChange} />
+        {suggestedStates.length > 0 && (
+          <ul style={styles.suggestions}>
+            {suggestedStates.map((s) => (
+              <li key={s} onClick={() => setFormData({ ...formData, state: s })}>
+                {s}
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <label>Password:</label>
+        <input type="password" name="password" required onChange={handleInputChange} />
+
+        <label>Captcha: 10 + 1 = ?</label>
+        <input type="text" name="captchaInput" required onChange={handleInputChange} />
+
+        <button type="submit" style={styles.button}>Submit</button>
       </form>
     </div>
   );
 };
 
-// Inline CSS styles
 const styles = {
-  container: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100vh",
-    backgroundColor: "#f4f4f4",
-  },
-  form: {
-    width: "400px",
-    padding: "20px",
-    border: "1px solid #ccc",
-    borderRadius: "10px",
-    boxShadow: "0px 0px 10px rgba(0,0,0,0.1)",
-    backgroundColor: "#fff",
-  },
-  heading: {
-    textAlign: "center",
-    color: "#333",
-  },
-  error: {
-    color: "red",
-    textAlign: "center",
-  },
-  label: {
-    display: "block",
-    marginTop: "10px",
-    fontWeight: "bold",
-  },
-  input: {
-    width: "100%",
-    padding: "8px",
-    marginTop: "5px",
-    border: "1px solid #ccc",
-    borderRadius: "5px",
-    fontSize: "16px",
-  },
-  buttonPrimary: {
-    width: "100%",
-    padding: "10px",
-    backgroundColor: "#28a745",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontSize: "16px",
-    marginTop: "10px",
-  },
-  buttonSecondary: {
-    width: "100%",
-    padding: "10px",
-    backgroundColor: "#007bff",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontSize: "16px",
-    marginTop: "10px",
-  },
+  container: { maxWidth: "500px", margin: "auto", padding: "20px" },
+  title: { textAlign: "center" },
+  form: { display: "flex", flexDirection: "column" },
+  row: { display: "flex", gap: "10px" },
+  suggestions: { listStyle: "none", padding: 0, background: "#ddd", cursor: "pointer" },
+  button: { marginTop: "10px", background: "blue", color: "white", padding: "10px", border: "none" },
 };
 
-export default Patients;
+export default PatientRegistration;

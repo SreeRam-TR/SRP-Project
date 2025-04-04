@@ -5,13 +5,15 @@ const Doctors = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    fullName: "",
     email: "",
+    phone: "",
+    dob: "",
+    specialization: "",
+    experience: "",
+    hospital_type: "",
     password: "",
     confirmPassword: "",
-    fullName: "",
-    phone: "",
-    medicalRegNumber: "",
-    specialization: "",
     captchaInput: "",
   });
 
@@ -26,39 +28,82 @@ const Doctors = () => {
   }
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
-    if (e.target.name === "password") {
-      setShowConfirmPassword(e.target.value.length > 0);
+    if (name === "password") {
+      setShowConfirmPassword(value.length > 0);
     }
   };
 
   const validateForm = () => {
-    if (!formData.email.includes("@") || !formData.email.includes(".")) {
+    const {
+      fullName,
+      email,
+      phone,
+      dob,
+      specialization,
+      experience,
+      hospital_type,
+      password,
+      confirmPassword,
+      captchaInput,
+    } = formData;
+
+    if (!fullName || !email || !phone || !dob || !specialization || !experience || !hospital_type || !password) {
+      setError("Please fill in all required fields.");
+      return false;
+    }
+
+    if (!email.includes("@") || !email.includes(".")) {
       setError("Enter a valid email address.");
       return false;
     }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
       return false;
     }
-    if (showConfirmPassword && formData.password !== formData.confirmPassword) {
+
+    if (showConfirmPassword && password !== confirmPassword) {
       setError("Passwords do not match.");
       return false;
     }
-    if (parseInt(formData.captchaInput) !== captcha.sum) {
+
+    if (parseInt(captchaInput) !== captcha.sum) {
       setError("Captcha does not match.");
       return false;
     }
+
     return true;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (validateForm()) {
-      navigate("/loginD");
+    if (!validateForm()) return;
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/register/doctor", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Doctor registered successfully!");
+        navigate("/loginD");
+      } else {
+        setError(data.message || "Registration failed.");
+      }
+    } catch (err) {
+      console.error("Registration error:", err);
+      setError("Server error. Please try again later.");
     }
   };
 
@@ -69,8 +114,26 @@ const Doctors = () => {
 
         {error && <p style={styles.error}>{error}</p>}
 
+        <label style={styles.label}>Full Name:</label>
+        <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} required style={styles.input} />
+
         <label style={styles.label}>Email Address:</label>
         <input type="email" name="email" value={formData.email} onChange={handleInputChange} required style={styles.input} />
+
+        <label style={styles.label}>Phone Number:</label>
+        <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required style={styles.input} />
+
+        <label style={styles.label}>Date of Birth:</label>
+        <input type="date" name="dob" value={formData.dob} onChange={handleInputChange} required style={styles.input} />
+
+        <label style={styles.label}>Specialization:</label>
+        <input type="text" name="specialization" value={formData.specialization} onChange={handleInputChange} required style={styles.input} />
+
+        <label style={styles.label}>Years of Experience:</label>
+        <input type="number" name="experience" value={formData.experience} onChange={handleInputChange} required style={styles.input} />
+
+        <label style={styles.label}>Hospital Type:</label>
+        <input type="text" name="hospital_type" value={formData.hospital_type} onChange={handleInputChange} required style={styles.input} />
 
         <label style={styles.label}>Password:</label>
         <input type="password" name="password" value={formData.password} onChange={handleInputChange} required style={styles.input} />
@@ -81,18 +144,6 @@ const Doctors = () => {
             <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} required style={styles.input} />
           </>
         )}
-
-        <label style={styles.label}>Full Name:</label>
-        <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} required style={styles.input} />
-
-        <label style={styles.label}>Phone Number:</label>
-        <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} required style={styles.input} />
-
-        <label style={styles.label}>Medical Registration Number:</label>
-        <input type="text" name="medicalRegNumber" value={formData.medicalRegNumber} onChange={handleInputChange} required style={styles.input} />
-
-        <label style={styles.label}>Specialization:</label>
-        <input type="text" name="specialization" value={formData.specialization} onChange={handleInputChange} required style={styles.input} />
 
         <label style={styles.label}>Captcha: {captcha.num1} + {captcha.num2} = ?</label>
         <input type="number" name="captchaInput" value={formData.captchaInput} onChange={handleInputChange} required style={styles.input} />
@@ -105,7 +156,6 @@ const Doctors = () => {
   );
 };
 
-// Inline CSS styles
 const styles = {
   container: {
     display: "flex",

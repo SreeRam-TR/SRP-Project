@@ -53,7 +53,7 @@ const loginPatient = async (req, res) => {
 // Register Doctor
 const registerDoctor = async (req, res) => {
   const {
-    full_name, email, phone, dob, specialty,
+    fullName, email, phone, dob, specialization,
     experience, hospital_type, password
   } = req.body;
 
@@ -61,7 +61,7 @@ const registerDoctor = async (req, res) => {
     const profileRes = await pool.query(
       `INSERT INTO doctors_profile (full_name, email, phone, dob, specialty, experience, hospital_type)
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING doctor_id`,
-      [full_name, email, phone, dob, specialty, experience, hospital_type]
+      [fullName, email, phone, dob, specialization, experience, hospital_type]
     );
 
     const doctor_id = profileRes.rows[0].doctor_id;
